@@ -64,6 +64,12 @@
   </init-param>
  </servlet>
  <servlet>
+ 	<display-name>DsExtModelInit</display-name>
+ 	<servlet-name>DsExtModelInit</servlet-name>
+ 	<servlet-class>org.jbpm.designer.web.server.DsExtModelInit</servlet-class>
+ 	<load-on-startup>1000</load-on-startup>
+ </servlet>
+ <servlet>
   <display-name>Transformer</display-name>
   <servlet-name>TransformerServlet</servlet-name>
   <servlet-class>org.jbpm.designer.web.server.TransformerServlet</servlet-class>

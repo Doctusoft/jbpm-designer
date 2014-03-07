@@ -1609,19 +1609,9 @@ Ext.form.ComplexNotificationsField = Ext.extend(Ext.form.TriggerField,  {
         var NotificationsDef = Ext.data.Record.create([{
             name: 'type'
         }, {
-            name: 'expires'
+            name: 'delayexpression'
         }, {
-            name: 'from'
-        }, {
-            name: 'tousers'
-        }, {
-            name: 'togroups'
-        }, {
-            name: 'replyto'
-        }, {
-            name: 'subject'
-        }, {
-            name: 'body'
+            name: 'template'
         }]);
 
         var notificationsProxy = new Ext.data.MemoryProxy({
@@ -1635,16 +1625,10 @@ Ext.form.ComplexNotificationsField = Ext.extend(Ext.form.TriggerField,  {
             }, NotificationsDef),
             proxy: notificationsProxy,
             sorters: [{
-                property: 'subject',
+                property: 'delayexpression',
                 direction:'ASC'
             }, {
-                property: 'from',
-                direction:'ASC'
-            }, {
-                property: 'tousers',
-                direction:'ASC'
-            }, {
-                property: 'togroups',
+                property: 'template',
                 direction:'ASC'
             }]
         });
@@ -1660,78 +1644,59 @@ Ext.form.ComplexNotificationsField = Ext.extend(Ext.form.TriggerField,  {
                 var nextPart = valueParts[i];
                 if(nextPart.indexOf("@") > 0) {
                     var innerParts = nextPart.split("@");
-                    var usergroupsstr = innerParts[0];
-                    var expiresstr = innerParts[1];
+                    var template = innerParts[0];
+                    var delayexpressionstr = innerParts[1];
                     var typestr = innerParts[2];
 
-                    var fromstr = "";
-                    var tousersstr = "";
-                    var togroupsstr = "";
-                    var replytostr = "";
-                    var subjectstr = "";
-                    var bodystr = "";
+                    var templatestr = "";
 
-                    if(usergroupsstr.indexOf("|") > 0) {
-                        var tparts = usergroupsstr.split("|");
+                    if(template.indexOf("|") > 0) {
+                        var tparts = template.split("|");
                         for(var j=0; j< tparts.length; j++) {
                             var epartsone = tparts[j].split(/:(.+)?/)[0];
                             var epartstwo = tparts[j].split(/:(.+)?/)[1];
-
-                            if(epartsone == "from") {
-                                fromstr = epartstwo;
-                            } else if(epartsone == "tousers") {
-                                tousersstr = epartstwo;
-                            } else if(epartsone == "togroups") {
-                                togroupsstr = epartstwo;
-                            } else if(epartsone == "replyTo") {
-                                replytostr = epartstwo;
-                            } else if(epartsone == "subject") {
-                                subjectstr = epartstwo;
-                            } else if(epartsone == "body") {
-                                bodystr = epartstwo.replace(/<br\s?\/?>/g,"\n");
+                            if(epartsone == "template") {
+                            	templatestr = epartstwo;
                             }
                         }
                     } else {
-                        var epartsone = usergroupsstr.split(/:(.+)?/)[0];
-                        var epartstwo = usergroupsstr.split(/:(.+)?/)[1];
-                        if(epartsone == "from") {
-                            fromstr = epartstwo;
-                        } else if(epartsone == "tousers") {
-                            tousersstr = epartstwo;
-                        } else if(epartsone == "togroups") {
-                            togroupsstr = epartstwo;
-                        } else if(epartsone == "replyTo") {
-                            replytostr = epartstwo;
-                        } else if(epartsone == "subject") {
-                            subjectstr = epartstwo;
-                        } else if(epartsone == "body") {
-                            bodystr = epartstwo.replace(/<br\s?\/?>/g,"\n");
+                        var epartsone = template.split(/:(.+)?/)[0];
+                        var epartstwo = template.split(/:(.+)?/)[1];
+                        if(epartsone == "template") {
+                        	templatestr = epartstwo;
                         }
                     }
 
                     notifications.add(new NotificationsDef({
                         type: typestr,
-                        expires: expiresstr,
-                        from: fromstr,
-                        tousers: tousersstr,
-                        togroups: togroupsstr,
-                        replyto: replytostr,
-                        subject: subjectstr,
-                        body: bodystr
+                        delayexpression: delayexpressionstr,
+                        template: templatestr
                     }));
                 }
             }
         }
 
         var typeData = new Array();
-        var notStartedType = new Array();
-        notStartedType.push("not-started");
-        notStartedType.push("not-started");
-        typeData.push(notStartedType);
-        var notCompletedTYpe = new Array();
-        notCompletedTYpe.push("not-completed");
-        notCompletedTYpe.push("not-completed");
-        typeData.push(notCompletedTYpe);
+        var taskCreationType = new Array();
+        taskCreationType.push("on-task-creation");
+        taskCreationType.push("on-task-creation");
+        typeData.push(taskCreationType);
+        var taskCompletionType = new Array();
+        taskCompletionType.push("on-task-completion");
+        taskCompletionType.push("on-task-completion");
+        typeData.push(taskCompletionType);
+        var deadlineExpiryType = new Array();
+        deadlineExpiryType.push("on-deadline-expiry");
+        deadlineExpiryType.push("on-deadline-expiry");
+        typeData.push(deadlineExpiryType);
+        var afterDeadlineExpiryType = new Array();
+        afterDeadlineExpiryType.push("after-deadline-expiry");
+        afterDeadlineExpiryType.push("after-deadline-expiry");
+        typeData.push(afterDeadlineExpiryType);
+        var beforeDeadlineExpiryType = new Array();
+        beforeDeadlineExpiryType.push("before-deadline-expiry");
+        beforeDeadlineExpiryType.push("before-deadline-expiry");
+        typeData.push(beforeDeadlineExpiryType);
 
         var gridId = Ext.id();
         var itemDeleter = new Extensive.grid.ItemDeleter();
@@ -1745,7 +1710,7 @@ Ext.form.ComplexNotificationsField = Ext.extend(Ext.form.TriggerField,  {
             {
                 id: 'type',
                 header: 'Type',
-                width: 100,
+                width: 200,
                 dataIndex: 'type',
                 editor: new Ext.form.ComboBox({
                     id: 'typeCombo',
@@ -1772,61 +1737,19 @@ Ext.form.ComplexNotificationsField = Ext.extend(Ext.form.TriggerField,  {
                 })
             },
             {
-                id: 'expires',
-                header: 'Expires At',
+                id: 'delayexpression',
+                header: 'Delay expression',
                 width: 100,
-                dataIndex: 'expires',
+                dataIndex: 'delayexpression',
                 editor: new Ext.form.TextField({ allowBlank: true, regex: /^[a-z0-9 \-\.\_]*$/i }),
                 renderer: Ext.util.Format.htmlEncode
             },
             {
-                id: 'from',
-                header: 'From',
-                width: 100,
-                dataIndex: 'from',
-                editor: new Ext.form.TextField({ allowBlank: true, regex: /^[a-z0-9 \-\.\_\,]*$/i }),
-                renderer: Ext.util.Format.htmlEncode
-            },
-            {
-                id: 'tousers',
-                header: 'To Users',
-                width: 100,
-                dataIndex: 'tousers',
-                editor: new Ext.form.TextField({ allowBlank: true, regex: /^[a-z0-9 \-\.\_\,]*$/i }),
-                renderer: Ext.util.Format.htmlEncode
-            },
-            {
-                id: 'togroups',
-                header: 'To Groups',
-                width: 100,
-                dataIndex: 'togroups',
-                editor: new Ext.form.TextField({ allowBlank: true, regex: /^[a-z0-9 \-\.\_\,]*$/i }),
-                renderer: Ext.util.Format.htmlEncode
-            },
-            {
-                id: 'replyto',
-                header: 'Reply To',
-                width: 100,
-                dataIndex: 'replyto',
-                editor: new Ext.form.TextField({ allowBlank: true, regex: /^[a-z0-9 \-\.\_\,]*$/i }),
-                renderer: Ext.util.Format.htmlEncode
-            },
-            {
-                id: 'subject',
-                header: 'Subject',
-                width: 100,
-                dataIndex: 'subject',
-                editor: new Ext.form.TextField({ allowBlank: true, regex: /^[a-z0-9 \-\.\_\,]*$/i }),
-                renderer: Ext.util.Format.htmlEncode
-            },
-            {
-                id: 'body',
-                header: 'Body',
-                width: 100,
-                height: 650,
-                dataIndex: 'body',
-                //editor: new Ext.grid.GridEditor(new Ext.form.TextArea(), {autoSize: 'full', })},
-                editor: new Ext.form.TextArea({ width: 150, height: 650, allowBlank: true, disableKeyFilter:true, grow: true}),
+                id: 'template',
+                header: 'Template',
+                width: 200,
+                dataIndex: 'template',
+                editor: new Ext.form.TextField({ allowBlank: false, regex: /^[a-z0-9 \-\.\_\,]*$/i }),
                 renderer: Ext.util.Format.htmlEncode
             }, itemDeleter]),
             selModel: itemDeleter,
@@ -1835,14 +1758,9 @@ Ext.form.ComplexNotificationsField = Ext.extend(Ext.form.TriggerField,  {
                 text: 'Add Notification',
                 handler : function(){
                     notifications.add(new NotificationsDef({
-                        expires: '',
-                        from: '',
-                        tousers: '',
-                        type: 'not-started',
-                        togroups: '',
-                        replyto: '',
-                        subject: '',
-                        body: ''
+                    	delayexpression: '',
+                        template: '',
+                        type: 'on-task-creation'
                     }));
 
                     grid.fireEvent('cellclick', grid, notifications.getCount()-1, 1, null);
@@ -1851,51 +1769,14 @@ Ext.form.ComplexNotificationsField = Ext.extend(Ext.form.TriggerField,  {
             clicksToEdit: 1,
             listeners:
             {
-                beforeedit: function(evt)
-                {
-                    if(evt.column != 8)
-                        return true;
-
-                    var win = new Ext.Window
-                        ({
-                            autoWidth:  true,
-                            autoHeight: true,
-                            bodyBorder: false,
-                            closable:   true,
-                            resizable:  false,
-                            items:
-                                [{
-                                    xtype:      'panel',
-                                    html:       "<p class='instructions'>Enter Notification body message.</p>"
-                                },
-                                {
-                                    xtype:      'textarea',
-                                    id:         'notificationbodyinput',
-                                    width:      350,
-                                    height:     300,
-                                    modal:      true,
-                                    value:      evt.value
-                                }],
-                            bbar:
-                                [{
-                                    text: 'OK',
-                                    handler: function()
-                                    {
-                                        evt.record.set('body', Ext.get('notificationbodyinput').getValue());
-                                        win.close();
-                                    }
-                                }]
-                        });
-                    win.show();
-                    return false;
-                }
+                beforeedit: function(evt){/* this was a HTML editor for email body - not needed anymore*/}
             }
         });
 
         var dialog = new Ext.Window({
             layout		: 'anchor',
             autoCreate	: true,
-            title		: 'Editor for Notifications',
+            title		: 'Editor for task-related email Notifications',
             height		: 350,
             width		: 900,
             modal		: true,
@@ -1927,9 +1808,9 @@ Ext.form.ComplexNotificationsField = Ext.extend(Ext.form.TriggerField,  {
                     grid.getView().refresh();
                     notifications.data.each(function() {
                         // [from:jbpm|tousers:maciej,tihomir|togroups:groups|replyTo:reploTo|subject:test|body:hello]@[6h]^[from:jbpm|tousers:kris,john|togroups:dev|replyTo:reployTo|subject:Next notification|body:again]@[5d]
-                        if( (this.data['tousers'].length > 0 || this.data['togroups'].length > 0) && this.data['subject'].length > 0 && this.data['body'].length > 0) {
-                            outValue += "[from:" + this.data['from'] + "|tousers:" + this.data['tousers'] + "|togroups:" + this.data['togroups'] + "|replyTo:" + this.data['replyto']  + "|subject:" + this.data['subject'] + "|body:" + this.data['body'].replace(/\r\n|\r|\n/g,"<br />") + "]";
-                            outValue += "@[" + this.data['expires'] + "]";
+                        if(this.data['template'].length > 0) {
+                            outValue += "[template:" + this.data['template'] + "]";
+                            outValue += "@[" + this.data['delayexpression'] + "]";
                             outValue += "@" + this.data['type'];
                             outValue += "^";
                         }
